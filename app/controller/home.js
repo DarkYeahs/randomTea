@@ -7,20 +7,6 @@ class HomeController extends Controller {
   async index() {
     const { ctx, app } = this;
 
-    // await app.redis.set('list', JSON.stringify(
-    //   [
-    //     '十三星座',
-    //     '一些柠檬一些茶',
-    //     '益禾堂',
-    //     '上茶',
-    //     '一芳',
-    //     '垯柠',
-    //     '一点点',
-    //     '新作的茶',
-    //     'coco',
-    //   ]
-    // ));
-
     let list = await app.redis.get('list');
 
     list = JSON.parse(list);
@@ -33,7 +19,44 @@ class HomeController extends Controller {
       result: random,
       list,
     };
-    await this.ctx.render('home/index.tpl', dataList);
+    // await this.ctx.render('home/index.tpl', dataList);
+    this.ctx.body = dataList;
+  }
+
+  async getList() {
+    const { ctx, app } = this;
+
+    const list = await app.redis.get('list');
+
+    ctx.body = list;
+  }
+
+  async getTodayTea() {
+    const { ctx, app } = this;
+
+    let list = await app.redis.get('list');
+
+    list = JSON.parse(list);
+
+    const len = list.length;
+    const rnd = await ctx.service.index.getRandomNum();
+    const random = rnd % len;
+
+    this.ctx.body = list[random];
+  }
+
+  async updateList() {
+    const { ctx, app } = this;
+
+    const body = ctx.request.body;
+
+    const params = body.data;
+
+    await app.redis.set('list', JSON.stringify(params));
+
+    const list = await app.redis.get('list');
+
+    ctx.body = list;
   }
 
   getRandomBytes() {
