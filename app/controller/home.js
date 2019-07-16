@@ -4,6 +4,7 @@ const Controller = require('egg').Controller;
 const crypto = require('crypto');
 
 class HomeController extends Controller {
+
   async index() {
     const { ctx, app } = this;
 
@@ -35,11 +36,19 @@ class HomeController extends Controller {
     const { ctx, app } = this;
 
     let list = await app.redis.get('list');
+    let rndList = await app.redis.get('rnd');
 
     list = JSON.parse(list);
+    rndList = JSON.parse(rndList);
 
     const len = list.length;
-    const rnd = await ctx.service.index.getRandomNum();
+
+    if (!rndList || rndList.length === 0) {
+      rndList = await ctx.service.index.getRandomNum(20);
+      console.log('rnd', rndList);
+    }
+    const rnd = rndList.pop();
+    await app.redis.set('rnd', JSON.stringify(rndList));
     const random = rnd % len;
 
     this.ctx.body = list[random];
